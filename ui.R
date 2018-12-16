@@ -1,5 +1,6 @@
 library(shiny)
-library(wavelets)
+library(wavelets, lib.loc = "./libraries")
+library(rsconnect, lib.loc = "./libraries")
 shinyUI(
   fluidPage(
   titlePanel(h3("Maximum Overlap Discrete Wavelets Calculator")),
@@ -10,7 +11,7 @@ shinyUI(
       tags$style(type="text/css", ".well { max-width: 514px; }")
     ),
       fileInput("file","Upload the Stocks"),
-      checkboxInput(inputId = "week", "Transform Daily to Weekly", value = FALSE),
+      # checkboxInput(inputId = "week", "Transform Daily to Weekly", value = FALSE),
       fileInput("bench","Upload the Benchmark"),
       fileInput("free","Upload the Risk Free"),
       helpText("Accepts only '.csv' file type."),
@@ -35,20 +36,15 @@ shinyUI(
     
       tags$hr(),
       h5(helpText("Wavelet & Scaling Coefficient Matrices")),
-      downloadLink('downloadw', 'Download Wavelet Coefficients'),
+      downloadButton('downloadw', 'Download Wavelet Coefficients'),
       downloadButton('downloadv', 'Download Scaling Coefficients'),
-      downloadLink('downloadr', 'Download Change Rate'),
-
-      tags$hr(),
-      textInput(inputId = "model1", label = "LS Regression", width = NULL, placeholder = NULL),
-      helpText("Use the Column Headers to call a variable"),
-      helpText("Formula General Format:"),
-      helpText("x1 ~ x2 + x3 + ... + xn")
+      downloadButton('downloadr', 'Download Change Rate'),
+      downloadButton('downloadbeta', 'Download Betas'),
+      downloadButton('downloadwav', 'Download Wav Betas')
     ),
 
     mainPanel(
       uiOutput("tb")
-      
     )
     
   )
