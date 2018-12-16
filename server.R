@@ -1,9 +1,5 @@
 library(shiny)
-
-# file input limit
-# options(shiny.maxRequestSize = 9*1024^2)
-
-# file$datapath -> gives the path of the file
+Sys.setenv(R_CMDZIP = 'C:/Rtools/bin/zip')
 
 shinyServer(function(input,output){
   source("./Functions.R", local = TRUE)
@@ -11,30 +7,39 @@ shinyServer(function(input,output){
   ### {INPUT TABLE TAB} ###
   output$table <- renderTable({
     if(is.null(data())){return ()}
-    data()
+    shortInput(data())
   }, rownames = TRUE)
   
   ### {RATE TABLE} ###
   output$rate <- renderTable({
-    if(is.null(data())){return ()}
-    rateInput()
+    shortInput(rateInput())
   }, rownames = TRUE)
   
   ### {INPUT SUMMARY TAB} ###
   output$sum <- renderTable({
-    if(is.null(data())){return ()}
-    #summary(data())
     do.call(cbind, lapply(data(), summary))
   }, rownames = TRUE)
   
   
   ### {REGRESSION TAB} ###
   
-  output$reg <- renderPrint({
-    if(is.null(data())){return ()}
-    regrInput()
-  })
+  output$beta1 <- renderTable({
+    if(is.null(data()) | is.null(bench()) | is.null(free())){return ()}
+    shortInput(regrInput())
+  }, digits = 4, rownames = TRUE)
   
+  
+  ### {REGRESSION TAB 2} ###
+  
+  output$beta2 <- renderTable({
+    if(is.null(data()) | is.null(bench()) | is.null(free())){return ()}
+    shortInput(regrInput2())
+  }, digits = 4, rownames = TRUE)
+  
+  output$beta3 <- renderTable({
+    if(is.null(data()) | is.null(bench()) | is.null(free())){return ()}
+    shortInput(regrInput3())
+  }, digits = 4, rownames = TRUE)
   
   ### {MODWT COEFS TAB} ###
   
@@ -48,15 +53,29 @@ shinyServer(function(input,output){
     t2coefsInput()
   })
   
-  # Table W
-  output$mod1 <- renderTable({
-    coefs$w
-  }, rownames = TRUE)
+  # Table WSF
+  output$wsf <- renderTable({
+    if(is.null(coefs$wsf)){return()}
+    shortInput(coefs$wsf)
+  }, digits = 4, rownames = TRUE)
   
-  # Table V
-  output$mod2 <- renderTable({
-    coefs$v
-  }, rownames = TRUE)
+  # Table VSF
+  output$vsf <- renderTable({
+    if(is.null(coefs$vsf)){return()}
+    shortInput(coefs$vsf)
+  }, digits = 4, rownames = TRUE)
+  
+  # Table WBF
+  output$wbf <- renderTable({
+    if(is.null(coefs$wbf)){return()}
+    shortInput(coefs$wbf)
+  }, digits = 4, rownames = TRUE)
+
+  # Table VBF
+  output$vbf <- renderTable({
+    if(is.null(coefs$vbf)){return()}
+    shortInput(coefs$vbf)
+  }, digits = 4, rownames = TRUE)
   
   
   ### {MODWT PLOT TAB} ###
@@ -79,8 +98,7 @@ shinyServer(function(input,output){
       paste("ChangeRate", Sys.Date(), '.csv', sep='')
     },
     content = function(file) {
-      write.csv(ddata(), file)
-      
+      write.csv(rateInput(), file)
     }
   )
   
@@ -90,7 +108,6 @@ shinyServer(function(input,output){
     },
     content = function(file) {
       write.csv(dwcoefsInput(), file)
-      
     }
   )
   
@@ -100,27 +117,33 @@ shinyServer(function(input,output){
     },
     content = function(file) {
       write.csv(dvcoefsInput(), file)
-      
     }
-  )  
+  )
+  
+  output$downloadbeta <- downloadHandler(
+    filename = function() {
+      paste("BetaCoefs", Sys.Date(), '.csv', sep='')
+    },
+    content = function(file) {
+      write.csv(regrInput(), file)
+    }
+  )
+  output$downloadwav <- downloadHandler(
+    filename = function() {
+      paste("WavBetaCoefs", Sys.Date(), '.csv', sep='')
+    },
+    content = function(file) {
+      write.csv(regrInput2(), file)
+    }
+  )
  
   ### {PATH TAB} ###
   
   output$filedf <- renderTable({
     if(is.null(data())){return ()}
-    input$file
+    rbind(input$file, input$bench, input$free)
+    
   })
-  
-  output$dcenter <- renderTable({
-    No. <- c(1:12)
-    Tables <- c('Stocks: Change Rate', 'Stocks: Wavelet Coefficients', 'Stocks: Scaling Coefficients',
-                'Stocks: Beta Coefficients','Benchmark: Change Rate', 'Benchmark: Wavelet Coefficients',
-                'Benchmark: Scaling Coefficients', 'Benchmark: Beta Coefficients', 'Free Risk: Change Rate',
-                'Free Risk: Wavelet Coefficients', 'Free Risk: Scaling Coefficients','Free Risk: Beta Coefficients')
-    Data <- rep("Download", 12)
-    data.frame(No., Tables, Data)
-  })
-  
   
   ### {TAB GENERATOR} ###
   
@@ -131,13 +154,18 @@ shinyServer(function(input,output){
       tabsetPanel(tabPanel("Data", tableOutput("table")),
                   tabPanel("Change Rate", tableOutput("rate")),
                   tabPanel("Summary", tableOutput("sum")),
-                  tabPanel("Beta Coefficients", verbatimTextOutput("beta1")),
-                  tabPanel("Wavelet Coefficients", htmlOutput("tmod1"),
-                           tableOutput("mod1"), htmlOutput("tmod2"),
-                           tableOutput("mod2")),
+                  tabPanel("Beta Coefficients", tableOutput("beta1")),
+                  tabPanel("Beta Coefficients 2", tableOutput("beta2")),
+                  tabPanel("Wavelets Coefs", fluidRow(htmlOutput("tmod1")),
+                           fluidRow(
+                             column(width = 7, tableOutput("wsf")),
+                             column(width = 5, tableOutput("wbf"))),
+                           fluidRow(htmlOutput("tmod2")),
+                             column(width = 7, tableOutput("vsf")),
+                             column(width = 5, tableOutput("vbf"))),
                   tabPanel("Wavelet Plot", plotOutput("plot", width = 1280, height = 720)),
                   tabPanel("About file", tableOutput("filedf"),
-                           tableOutput("dcenter"))
+                          htmlOutput("dcenter"))
                   )
   })
-}) 
+})
