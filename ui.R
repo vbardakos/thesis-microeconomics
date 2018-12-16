@@ -1,9 +1,5 @@
-#install.packages('wavelets')
 library(shiny)
-# install.packages("wavelets", destdir = "D:/OneDrive/DEREE/RStudio/shiny regression/packages")
 library(wavelets)
-# library(rsconnect)
-# install.packages('rsconnect')
 shinyUI(
   fluidPage(
   titlePanel(h3("Maximum Overlap Discrete Wavelets Calculator")),
