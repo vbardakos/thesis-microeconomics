@@ -81,19 +81,6 @@
     )
   })
   
-### {FILTER MAX} ###
-  # max <- reactive({
-  # n <- nrow(data())
-  #     if(input$filter == "la8"){
-  #       l <- 8
-  #     } else { #(input$filter == "haar") {
-  #       l <- 2
-  #     }
-  #     max <- log((n-1)/(l-1)+1)
-  #     max <- round(max)
-  # })
-  
-
 ### {MY WAVE} ###
   waveInput <- reactive({
        data <- ddata()
@@ -104,7 +91,6 @@
   coefs <- reactiveValues(w = NULL, v = NULL)
   wcoefsInput <- observeEvent(input$calc, {
       data <- data()
-     # wave <- modwt(data, filter = input$filter, n.levels = input$levels, boundary = input$boundary)
       wave <- waveInput()
       name_list <- expand.grid(W=names(wave@W),N=names(data))
       name_list <- name_list[order(name_list$W),]
@@ -122,7 +108,6 @@
   vcoefsInput <- observeEvent(input$calc, {
       data <- data()
       wave <- waveInput()
-    #  wave <- modwt(data(), filter = input$filter, n.levels = input$levels, boundary = input$boundary)
       name_list <- expand.grid(V=names(wave@V),N=names(data))
       name_list <- name_list[order(name_list$V),]
       name_list <- unlist(apply(name_list,1,paste0,collapse=""))
@@ -145,11 +130,6 @@
       for (i in 1:ncol(ddata())) {
         lm(rdf[,i] ~ rbf)
       }
-      # attach(data())
-      # attach(vcoefsInput())
-      # attach(wcoefsInput())
-      # output <- lm(as.formula(input$model1), data = data())
-      # summary(output)
   })
 
 ### {DOWNLOADS} ###
